@@ -116,7 +116,7 @@ def show_answer(X):
     for i, x in enumerate(X):
         print(f'X{i} = {x}')
 
-# Основная программа
+# Основная программа, вывод ответа
 A, B = input_matrix()
 show_matrix(A, B)
 solution = gauss_solve(A, B)
