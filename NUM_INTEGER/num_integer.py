@@ -18,7 +18,7 @@ def simpson_method(f, a, b, n):
 a = 0
 b_max = 2 * np.pi
 x_vals = np.linspace(a, b_max, 200)
-n = 5000
+n = 500
 
 # Вычисляем интеграл от 0 до x
 simpson_integrals = [simpson_method(f, a, x, n) for x in x_vals]
