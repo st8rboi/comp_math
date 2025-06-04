@@ -1,58 +1,134 @@
-"""
-Решение обыкновенного дифференциального уравнения первого порядка методом Эйлера.
+import numpy as np
+import matplotlib.pyplot as plt
 
-Этот модуль решает задачу численного интегрирования уравнения вида:
-    dy/dx = f(x, y)
-"""
+# Настройки отображения графиков
+plt.rcParams.update({
+    'figure.figsize': (14, 9),
+    'font.size': 11
+})
 
-def f(x, y):
-    """
-    Правая часть уравнения dy/dx = x + y.
+# --- Численные методы решения ОДУ ---
 
-    Параметры:
-        x -- независимая переменная.
-        y -- зависимая переменная.
+def euler(f, x0, y0, h, steps):
+    """Метод Эйлера первого порядка"""
+    x_vals, y_vals = [x0], [y0]
+    for _ in range(steps):
+        y_next = y_vals[-1] + h * f(x_vals[-1], y_vals[-1])
+        x_vals.append(x_vals[-1] + h)
+        y_vals.append(y_next)
+    return np.array(x_vals), np.array(y_vals)
 
-    Возвращает:
-        Значение функции f(x, y) = x + y.
-    """
-    return x + y  # Правая часть уравнения
+def rk2(f, x0, y0, h, steps):
+    """Метод Рунге-Кутты второго порядка (Модифицированный Эйлер)"""
+    x_vals, y_vals = [x0], [y0]
+    for _ in range(steps):
+        k1 = h * f(x_vals[-1], y_vals[-1])
+        k2 = h * f(x_vals[-1] + h, y_vals[-1] + k1)
+        y_next = y_vals[-1] + 0.5 * (k1 + k2)
+        x_vals.append(x_vals[-1] + h)
+        y_vals.append(y_next)
+    return np.array(x_vals), np.array(y_vals)
 
+def rk3(f, x0, y0, h, steps):
+    """Метод Рунге-Кутты третьего порядка"""
+    x_vals, y_vals = [x0], [y0]
+    for _ in range(steps):
+        k1 = h * f(x_vals[-1], y_vals[-1])
+        k2 = h * f(x_vals[-1] + h / 2, y_vals[-1] + k1 / 2)
+        k3 = h * f(x_vals[-1] + h, y_vals[-1] - k1 + 2 * k2)
+        y_next = y_vals[-1] + (k1 + 4 * k2 + k3) / 6
+        x_vals.append(x_vals[-1] + h)
+        y_vals.append(y_next)
+    return np.array(x_vals), np.array(y_vals)
 
-def euler_method(f, x0, y0, h, n):
-    """
-    Решение обыкновенного дифференциального уравнения методом Эйлера.
+def rk4(f, x0, y0, h, steps):
+    """Метод Рунге-Кутты четвёртого порядка"""
+    x_vals, y_vals = [x0], [y0]
+    for _ in range(steps):
+        k1 = h * f(x_vals[-1], y_vals[-1])
+        k2 = h * f(x_vals[-1] + h / 2, y_vals[-1] + k1 / 2)
+        k3 = h * f(x_vals[-1] + h / 2, y_vals[-1] + k2 / 2)
+        k4 = h * f(x_vals[-1] + h, y_vals[-1] + k3)
+        y_next = y_vals[-1] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        x_vals.append(x_vals[-1] + h)
+        y_vals.append(y_next)
+    return np.array(x_vals), np.array(y_vals)
 
-    Параметры:
-        f -- правая часть уравнения, функция f(x, y).
-        x0 -- начальное значение x.
-        y0 -- начальное значение y.
-        h -- шаг по x (размер шага для дискретизации).
-        n -- количество шагов (итераций метода Эйлера).
-
-    Возвращает:
-        xs -- список значений x.
-        ys -- список значений y, вычисленных методом Эйлера.
-    """
-    xs = [x0]  # Список значений x
-    ys = [y0]  # Список значений y
-    for i in range(n):
-        y0 = y0 + h * f(x0, y0)  # Обновление значения y по формуле Эйлера
-        x0 = x0 + h  # Увеличиваем x на шаг h
-        xs.append(x0)  # Добавляем новое значение x
-        ys.append(y0)  # Добавляем новое значение y
-    return xs, ys
-
+# Правая часть уравнения y' = x^2
+def diff_eq(x, y):
+    return x**2
 
 # Начальные условия
-x0 = 0   # Начальное значение x
-y0 = 1   # Начальное значение y
-h = 0.1  # Шаг по x
-n = 10   # Количество шагов
+start_x, start_y = 0.0, 1.0
+h = 0.02
+num_steps = 50
 
-# Решение задачи методом Эйлера
-xs, ys = euler_method(f, x0, y0, h, n)
+# Вычисляем численные решения
+x1, y_euler = euler(diff_eq, start_x, start_y, h, num_steps)
+x2, y_rk2 = rk2(diff_eq, start_x, start_y, h, num_steps)
+x3, y_rk3 = rk3(diff_eq, start_x, start_y, h, num_steps)
+x4, y_rk4 = rk4(diff_eq, start_x, start_y, h, num_steps)
 
-# Вывод результатов
-for i in range(len(xs)):
-    print(f"x = {xs[i]:.2f}, y = {ys[i]:.4f}")
+# --- Визуализация результатов ---
+
+plt.figure()
+
+# 1. Все методы на одном графике
+plt.subplot(2, 3, 1)
+plt.plot(x1, y_euler, 'tab:blue', label='Эйлер', linestyle='--')
+plt.plot(x2, y_rk2, 'tab:red', label='РК 2', linestyle='-.')
+plt.plot(x3, y_rk3, 'tab:green', label='РК 3', linestyle=':')
+plt.plot(x4, y_rk4, 'tab:purple', label='РК 4', linewidth=2)
+plt.title('Численные методы решения ОДУ: y\' = x²')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.grid(True)
+
+# 2. РК4 - Эйлер
+plt.subplot(2, 3, 2)
+plt.plot(x1, y_rk4 - y_euler, 'darkred')
+plt.title('Разность: РК4 - Эйлер')
+plt.xlabel('x')
+plt.ylabel('Δy')
+plt.grid(True)
+
+# 3. РК2 - Эйлер
+plt.subplot(2, 3, 3)
+plt.plot(x1, y_rk2 - y_euler, 'navy')
+plt.title('Разность: РК2 - Эйлер')
+plt.xlabel('x')
+plt.ylabel('Δy')
+plt.grid(True)
+
+# 4. РК3 - Эйлер
+plt.subplot(2, 3, 4)
+plt.plot(x1, y_rk3 - y_euler, 'seagreen')
+plt.title('Разность: РК3 - Эйлер')
+plt.xlabel('x')
+plt.ylabel('Δy')
+plt.grid(True)
+
+# 5. Относительные ошибки
+plt.subplot(2, 3, 5)
+for y_approx, color, label in [(y_rk2, 'blue', 'РК2'), (y_rk3, 'green', 'РК3'), (y_rk4, 'purple', 'РК4')]:
+    safe_y = np.where(y_approx == 0, 1e-12, y_approx)
+    relative_diff = (y_approx - y_euler) / safe_y
+    plt.plot(x1, relative_diff, label=f'{label} / Эйлер', color=color)
+plt.title('Относительные отклонения от метода Эйлера')
+plt.xlabel('x')
+plt.ylabel('Отн. ошибка')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# 6. Только метод Эйлера
+plt.figure(figsize=(9, 5))
+plt.plot(x1, y_euler, 'orangered', linewidth=2)
+plt.title("Приближенное решение (метод Эйлера)")
+plt.xlabel('x')
+plt.ylabel('y')
+plt.grid(True)
+plt.show()
